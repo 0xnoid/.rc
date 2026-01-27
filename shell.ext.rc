@@ -1,0 +1,48 @@
+# Replace whoami with full details
+## Displays: userName,uid,groups,gid,sshConnection,hostname,dirs,shell,kernel,etc.
+whoami() {
+    local username=$(id -un)
+    local userid=$(id -u)
+    local groupid=$(id -g)
+    local groupname=$(id -gn)
+    local allgroups=$(id -Gn | awk '{for(i=1;i<=NF;i++) printf "%s(%s) ", $i, $(i)}')
+    local groups_with_gid=""
+    
+    for group in $(id -Gn); do
+        local gid=$(getent group "$group" | cut -d: -f3)
+        groups_with_gid+="$group($gid) "
+    done
+    
+    local shell_name=$(basename "$SHELL")
+    local hostname=$(hostname)
+    local home_dir="$HOME"
+    local current_dir="$PWD"
+    local uptime_info=$(uptime | awk '{print $3, $4}' | sed 's/,$//')
+    local os_info=$(uname -s)
+    local kernel_info=$(uname -r)
+    
+    local connection_type="Local"
+    local ssh_from=""
+    if [ -n "$SSH_CONNECTION" ]; then
+        connection_type="SSH"
+        ssh_from=$(echo $SSH_CONNECTION | awk '{print $1":"$2}')
+    elif [ -n "$SSH_CLIENT" ]; then
+        connection_type="SSH"
+        ssh_from=$(echo $SSH_CLIENT | awk '{print $1":"$2}')
+    fi
+    
+    echo ""
+    echo "  User:        $username | $userid"
+    echo "  Groups:      $groups_with_gid"
+    echo ""
+    echo "  OS:          $hostname | Kernel: $kernel_info | Shell: $shell_name | $uptime_info"
+    if [ "$connection_type" = "SSH" ]; then
+        echo "  Connection:  $connection_type | $ssh_from"
+    else
+        echo "  Connection:  $connection_type"
+    fi
+    echo ""
+    echo "  Home:        $home_dir"
+    echo "  Current:     $current_dir"
+    echo ""
+}
