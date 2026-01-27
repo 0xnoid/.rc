@@ -8,3 +8,5 @@ PROMPT_COMMAND='history -a'
 ## History size
 HISTSIZE=1000
 HISTFILESIZE=2000
+# Ignore duplicates, ignore commands starting with space
+export HISTCONTROL=erasedups:ignoredups:ignorespace
